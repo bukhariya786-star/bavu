@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+<meta charset="UTF-8">
+<title>BEC Receipt</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Manjari:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+body{
+  background:#f4f6f8;
+  font-family:'Manjari',sans-serif;
+  text-align:center;
+  padding:20px;
+}
+
+input,button{
+  width:260px;
+  padding:14px;
+  border-radius:10px;
+  font-size:16px;
+}
+
+button{
+  background:#0b7d4a;
+  color:#fff;
+  border:none;
+  cursor:pointer;
+}
+
+#receipt{
+  width:800px;
+  height:1130px;
+  background:url('raseept-poster.png') no-repeat center;
+  background-size:contain;
+  position:relative;
+  margin:auto;
+  display:none;
+}
+
+/* Amount */
+.amount-box{
+  position:absolute;
+  top:130px;
+  left:150px;
+  width:260px;
+  height:50px;
+  border:2px solid #0b3b91;
+  border-radius:30px;
+  background:#fff;
+  display:flex;
+  align-items:center;
+  font-size:22px;
+  font-weight:700;
+  padding-left:15px;
+}
+
+/* Donor name */
+.donor-name{
+  position:absolute;
+  top:310px;
+  left:120px;
+  width:560px;
+  text-align:center;
+  font-size:20px;
+  font-weight:700;
+}
+
+/* Message */
+.message{
+  position:absolute;
+  top:360px;
+  left:120px;
+  width:560px;
+  font-size:15.5px;
+  line-height:1.8;
+  text-align:justify;
+}
+
+/* Photo */
+.photo-box{
+  position:absolute;
+  top:560px;
+  left:120px;
+  width:560px;
+  height:260px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.photo-box img{
+  max-width:100%;
+  max-height:100%;
+}
+
+/* Signature */
+.signature{
+  position:absolute;
+  bottom:200px;
+  right:140px;
+  text-align:center;
+}
+.signature img{width:140px;}
+
+@media(max-width:900px){
+  #receipt{
+    transform:scale(0.45);
+    transform-origin:top center;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<input id="receiptNo" placeholder="Receipt Number"><br><br>
+<button onclick="generate()">Auto PDF Download</button>
+
+<div id="receipt">
+  <div class="amount-box">₹ <span id="amount"></span></div>
+
+  <div class="donor-name" id="donor"></div>
+
+  <div class="message">
+    ബോവിക്കാനം, മുതലപ്പാറയിൽ പ്രവർത്തിക്കുന്ന
+    <b>ബുഖാരിയ എജുക്കേഷണൽ സെന്ററിലേക്ക്</b>
+    നിങ്ങൾ നൽകിയ ഈ പിന്തുണക്ക് ഹൃദയത്തിന്റെ
+    അകത്തട്ടിൽ നിന്നുള്ള നന്ദി അറിയിക്കുന്നു.<br><br>
+    നിങ്ങളുടെ ഈ സംഭാവന നാഥൻ സ്വീകരിക്കുമാറാകട്ടെ.
+    നമ്മുടെ മാതാപിതാക്കളോടൊപ്പം സ്വർഗ്ഗത്തിൽ
+    ഒരു ഇരിപ്പിടം റബ്ബ് നൽകട്ടെ.<br><br>
+    <b>ആമീൻ…</b>
+  </div>
+
+  <div class="photo-box">
+    <img id="photo">
+  </div>
+
+  <div class="signature">
+    <img src="signature.png"><br>
+    <small>Authorized Signature</small>
+  </div>
+</div>
+
+<script>
+const TSV_URL="PASTE_YOUR_TSV_LINK";
+
+function generate(){
+  const no=document.getElementById("receiptNo").value.trim();
+  if(!no){alert("Receipt Number നൽകുക");return;}
+
+  fetch(TSV_URL).then(r=>r.text()).then(t=>{
+    const rows=t.split("\n").map(r=>r.split("\t"));
+    const r=rows.find(x=>x[0]===no);
+    if(!r){alert("Receipt not found");return;}
+
+    document.getElementById("amount").innerText=r[3];
+    document.getElementById("donor").innerHTML=
+      `ബഹുമാനപ്പെട്ട<br>പേര് : <b>${r[2]}</b>`;
+    document.getElementById("photo").src=r[8];
+
+    document.getElementById("receipt").style.display="block";
+
+    html2pdf().set({
+      margin:0,
+      filename:`Receipt_${no}.pdf`,
+      image:{type:'jpeg',quality:1},
+      html2canvas:{scale:2},
+      jsPDF:{unit:'px',format:[800,1130]}
+    }).from(document.getElementById("receipt")).save();
+  });
+}
+</script>
+
+</body>
+</html>
